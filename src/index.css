@@ -1,0 +1,285 @@
+html, body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    height: 100%;
+}
+
+div#root {
+    height: 100%;
+    width: 100%;
+}
+
+div.app {
+    display: flex;
+    flex-flow: column;
+    min-height: 100%;
+    min-width: 100%;
+    position: absolute;
+    background-color: #0082c9;
+    background-repeat: repeat-y;
+}
+
+.navbar-brand {
+    width: 6em;
+    height: 3em;
+    background: url("/src/img/logo.svg");
+    background-size: cover;
+}
+
+div.content {
+    background: #313131;
+    color: lightblue;
+    margin-bottom: 5em;
+    max-height: 100%;
+    height: 100%;
+    padding-bottom: 1em;
+}
+
+code {
+    font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+
+.profile-selector {
+    /*border: 1px solid blue;*/
+    /*height: 200px;*/
+    /*max-height: 200px;*/
+}
+
+.profile {
+    width: 10em;
+    height: 14em;
+    margin: 1em;
+    border: 1px solid #414141;
+    border-radius: 1em;
+    overflow: hidden;
+}
+
+.profile:hover {
+    background: #414141;
+}
+
+.profile figcaption {
+    padding: 0 1em 1em;
+    text-align: center;
+}
+
+.profile p {
+    color: #c1c1c1;
+    font-weight: bold;
+    margin: 0;
+}
+
+.profile small {
+    text-align: left;
+    color: #a1a1a1;
+}
+
+.profile .icon-wrapper {
+    text-align: center;
+    height: 10em;
+    vertical-align: middle;
+}
+.profile .icon {
+}
+.profile:hover {
+    cursor: pointer;
+    border-width: 2px;
+}
+
+.profile .edit-profile {
+    border: none;
+    background: transparent;
+    color: #414141;
+    z-index: 99;
+}
+
+nav.path {
+    width: 100%;
+    background: #414141;
+}
+
+.breadcrumb-item {
+    background: #616161;
+}
+
+.breadcrumb-item a {
+    color: #efefef;
+    text-decoration: none;
+}
+
+.file-item {
+    margin: 0.6em;
+    width: 10em;
+    max-width: 10em;
+    height: 12em;
+    text-align: center;
+    overflow: hidden;
+    border-radius: 0.5em;
+    cursor: pointer;
+    display: inline-block;
+    color: #efefef;
+}
+
+.file-item:hover, .file-item.selected {
+    background: #414141;
+}
+
+.file-item figure {
+    width: 100%;
+}
+
+.file-item .icon {
+    margin-top: 0.5em;
+    text-align: center;
+    width: 9em;
+    min-width: 9em;
+    height: 8em;
+    margin-bottom: 0;
+    display: inline-block;
+}
+
+.spinner-wrapper {
+    background: black;
+    width: 100%;
+    height: 100%;
+    min-width: 100%;
+    min-height: 100%;
+    text-align: center;
+    opacity: 0.2;
+    z-index: 100;
+    margin: auto;
+    vertical-align: middle;
+}
+
+.spinner-wrapper .spn {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    opacity: 1;
+}
+
+.file-item .icon.folder {
+    background: url("/src/img/icon-folder.svg");
+    background-size: cover;
+}
+
+.file-item p {
+    text-align: center;
+    margin-top: 0;
+    padding: 0.4em;
+    font-size: 0.8em;
+    width: 100%;
+    line-height: 1;
+    height: 3em;
+    color: #efefef;
+}
+
+#audio-container {
+    width: 400px;
+    margin: 0 auto;
+}
+
+#audio-container audio {
+    width: 100%;
+}
+
+#pButton {
+    margin-top: 12px;
+    cursor: pointer;
+}
+
+#playhead {
+    width: 8px;
+    height: 8px;
+    -webkit-border-radius: 50%;
+    border-radius: 50%;
+    margin-top: -3px;
+    background: black;
+    cursor: pointer;
+}
+
+.current-file {
+    min-width: 100%;
+    min-height: 100%;
+    background: #212121;
+}
+
+.current-file > .container {
+    min-width: 100%;
+    min-height: 100%;
+    width: 100%;
+    height: 100%;
+    position: absolute;
+}
+
+.current-file .close-btn {
+    z-index: 100;
+    background: transparent;
+    border: none;
+    width: 8em;
+    height: 8em;
+}
+
+.current-file .close-btn svg {
+    display: none;
+}
+
+.current-file .close-btn:hover {
+    background: #111111;
+    opacity: 0.6;
+}
+
+.current-file .close-btn:hover svg {
+    display: inline-block;
+}
+
+.current-file video, .current-file img {
+    max-width: 100vw;
+    max-height: 100vh;
+}
+
+.current-file .viewer {
+    margin: 0 auto;
+    text-align: center;
+    width: 100%;
+    height: 100%;
+}
+
+.current-file .viewer .navi {
+    width: 8em;
+    position: absolute;
+    height: 100%;
+    top: 0;
+    background: transparent;
+    border: none;
+}
+
+.current-file .viewer .navi svg {
+    display: none;
+}
+
+.current-file .viewer .navi:hover {
+    background: #111111;
+    opacity: 0.6;
+}
+
+.current-file .viewer .navi:hover svg {
+    display: inline-block;
+}
+
+.current-file .viewer .prev {
+    left: 0;
+}
+
+.current-file .viewer .prev:hover {
+    display: inline-block;
+}
+
+.current-file .viewer .next {
+    right: 0;
+}
