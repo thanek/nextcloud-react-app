@@ -96,24 +96,10 @@ class NextcloudClient {
         if (!this.webdav) {
             throw new Error('No profile set')
         }
+
         return this.webdav.getDirectoryContents(path, {details: true})
-            .then((response) => {
-                    let items = []
-                    for (const item of response.data) {
-                        items.push({
-                            ...item,
-                            thumbnail: this.thumbnailUrl(item.filename)
-                        })
-                    }
-                    let idx = 0;
-                    // TODO check if next/prev item is a file (not directory)
-                    for (const item of items) {
-                        item.prev = idx >= 1 ? items[idx - 1] : null;
-                        item.next = idx + 1 >= items.length ? null : items[idx + 1];
-                        idx++;
-                    }
-                    return items;
-                }
+            .then((response) => response.data
+                .map(i => ({...i, thumbnail: (i.type === 'file') ? this.thumbnailUrl(i.filename) : null}))
             )
     }
 

@@ -11,7 +11,6 @@ import Folder from "./components/file/Folder";
 import File from "./components/file/File";
 import FileViewer from "./components/file/FileViewer";
 import NextcloudClient from "./utils/NextcloudClient";
-import {Next} from "react-bootstrap/PageItem";
 
 function App() {
     const itemRefs = useRef([])
@@ -93,6 +92,10 @@ function App() {
         }
     }
 
+    function foldersFirst(items) {
+        return items.filter(i => i.type === 'directory').concat(items.filter(i => i.type === 'file'))
+    }
+
     function browse(path) {
         setLoading(true)
         const client = getClient()
@@ -100,7 +103,24 @@ function App() {
             path = client.getRootPath()
         }
         setCurrentFile(null)
-        client.browse(path).then((items) => {
+        client.browse(path).then((i) => {
+            const items = foldersFirst(i)
+
+            let idx = 0;
+            for (const item of items) {
+                if (idx > 0 && items[idx - 1].type !== 'directory') {
+                    item.prev = items[idx - 1]
+                } else {
+                    item.prev = null
+                }
+                if (idx < items.length - 1 && items[idx + 1].type !== 'directory') {
+                    item.next = items[idx + 1]
+                } else {
+                    item.next = null
+                }
+                idx++;
+            }
+
             setContent({
                 path: path,
                 breadcrumb: toBreadcrumb(path),
@@ -127,7 +147,7 @@ function App() {
 
         {currentProfile && <>
             <div className="app">
-                <Container fluid="true" flex>
+                <Container fluid="true">
                     <Navbar bg='dark' variant='dark'>
                         <Container>
                             <Navbar.Brand href="#" onClick={() => browse()}/>
@@ -139,43 +159,37 @@ function App() {
                         </Container>
                     </Navbar>
                 </Container>
-                <Container className="content rounded-bottom-4" flex>
+                <Container className="content rounded-bottom-4">
                     {content && <div id="listing">
                         <Breadcrumb className="rounded-3 path">
                             {content.breadcrumb.map(item =>
-                                <BreadcrumbItem onClick={() => browse(item.path)} className="p-2 rounded m-1">
+                                <BreadcrumbItem key={item.path}
+                                                onClick={() => browse(item.path)}
+                                                className="p-2 rounded m-1">
                                     {item.name}
                                 </BreadcrumbItem>
                             )}
                         </Breadcrumb>
-                        <Container md>
-                            {content.items.map((item, i) => <>
-                                {item.type === 'directory' &&
-                                <a ref={el => (itemRefs.current[i] = el)}
+                        <Container>
+                            {content.items.map((item, i) =>
+                                <a key={i}
+                                   ref={el => (itemRefs.current[i] = el)}
                                    href="#"
                                    role="button"
                                    tabIndex="0"
                                    className={isSelected(item) ? "file-item selected" : "file-item"}
-                                   onClick={() => browse(item.filename)}>
-                                    <Folder item={item}/>
-                                </a>}
-                                {item.type !== 'directory' &&
-                                <a ref={el => (itemRefs.current[i] = el)}
-                                   href="#"
-                                   role="button"
-                                   tabIndex="0"
-                                   className={isSelected(item) ? "file-item selected" : "file-item"}
-                                   onClick={() => fetchItem(item)}>
-                                    <File item={item}/>
-                                </a>}
-                            </>)}
+                                   onClick={() => item.type === 'directory' ? browse(item.filename) : fetchItem(item)}>
+                                    {item.type === 'directory' && <Folder item={item}/>}
+                                    {item.type !== 'directory' && <File item={item}/>}
+                                </a>)}
                         </Container>
                     </div>}
                 </Container>
             </div>
         </>}
 
-        {currentFile && <FileViewer
+        {currentFile &&
+        <FileViewer
             file={currentFile}
             next={currentFile.next}
             prev={currentFile.prev}
@@ -188,7 +202,8 @@ function App() {
             onNext={() => fetchItem(currentFile.next)}
         />}
 
-        {loading && <div className="spinner-wrapper rounded-bottom-4 position-fixed" onClick={() => setLoading(false)}>
+        {loading &&
+        <div className="spinner-wrapper rounded-bottom-4 position-fixed" onClick={() => setLoading(false)}>
             <Spinner className="spn" variant='light'/>
         </div>}
     </div>);

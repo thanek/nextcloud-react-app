@@ -96,7 +96,8 @@ export default function ProfileSelector(props) {
             <ModalBody className="position-absolute translate-middle top-50 start-50">
                 <h5 className="p-3">Choose your profile:</h5>
                 {profiles.map((profile) =>
-                    <Profile profile={profile}
+                    <Profile key={profile.loginName + '@' + profile.server}
+                             profile={profile}
                              onEdit={() => setProfileEdit(copyOf(profile))}
                              onDelete={() => setProfileDeletion(profile)}
                              onSelect={() => props.onProfileSelect(profile)}/>

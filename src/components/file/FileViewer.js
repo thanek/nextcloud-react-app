@@ -2,31 +2,18 @@ import {Button, Container, Row} from "react-bootstrap";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {faArrowLeft, faArrowRight, faClose} from "@fortawesome/free-solid-svg-icons";
 import Audio from "../media/Audio";
-import {useEffect, useRef} from "react";
+import {useRef} from "react";
 
 export default function FileViewer(props) {
     const thisRef = useRef()
 
-    function handleKeyboard(event, name) {
-        console.log("KBRD", name)
-        if (event.key === 'Escape') {
-            props.onClose()
-        }
-        if (event.key === 'ArrowLeft' && props.prev) {
-            props.onPrev()
-        }
-        if (event.key === 'ArrowRight' && props.next) {
-            props.onNext()
-        }
+    function supportedMedia(file) {
+        return file.mime && (file.mime.startsWith('audio/')
+            || file.mime.startsWith('image/')
+            || file.mime.startsWith('video/'))
     }
 
-    useEffect(() => {
-        console.log("FOXUS")
-        thisRef.current.focus();
-    }, []);
-
-    return <div className="current-file position-fixed"
-                onKeyDown={(e) => handleKeyboard(e, props.file.name)}>
+    return <div className="current-file position-fixed">
         <Container>
             <Row className="viewer d-flex align-items-center justify-content-center">
                 <div id="show" className="">
@@ -39,13 +26,20 @@ export default function FileViewer(props) {
                     </Button>}
 
                     <div ref={thisRef}>
-                        {props.file.mime.startsWith('image/') &&
+                        {!supportedMedia(props.file) &&
+                        <div>
+                            {props.onLoad()}
+                            <p>This file type is not supported</p>
+                            <small>{props.file.name} is {props.file.mime}</small>
+                        </div>}
+
+                        {supportedMedia(props.file) && props.file.mime.startsWith('image/') &&
                         <img src={props.file.url} onLoad={() => props.onLoad()}/>}
 
-                        {props.file.mime.startsWith('audio/') &&
+                        {supportedMedia(props.file) && props.file.mime.startsWith('audio/') &&
                         <Audio item={props.file} onLoad={() => props.onLoad()}/>}
 
-                        {props.file.mime.startsWith('video/') &&
+                        {supportedMedia(props.file) && props.file.mime.startsWith('video/') &&
                         <video controls autoPlay src={props.file.url}
                                onLoad={() => props.onLoad()}
                                onProgress={() => props.onLoad()}/>}
