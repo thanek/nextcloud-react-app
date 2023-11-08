@@ -1,4 +1,3 @@
-import {createClient} from 'webdav'
 import {useEffect, useState, useRef} from 'react';
 import ProfileSelector from './components/profile/ProfileSelector'
 import {
@@ -11,6 +10,8 @@ import {
 import Folder from "./components/file/Folder";
 import File from "./components/file/File";
 import FileViewer from "./components/file/FileViewer";
+import NextcloudClient from "./utils/NextcloudClient";
+import {Next} from "react-bootstrap/PageItem";
 
 function App() {
     const itemRefs = useRef([])
@@ -41,11 +42,7 @@ function App() {
     }, [currentFile]);
 
     function getClient() {
-        return createClient(currentProfile.server + '/remote.php/dav', {
-            authType: "password",
-            username: currentProfile.loginName,
-            password: currentProfile.appPassword
-        })
+        return NextcloudClient.withProfile(currentProfile)
     }
 
     async function fetchItem(item) {
@@ -54,15 +51,7 @@ function App() {
         }
         setLoading(true);
 
-        const downloadUrl = getClient().getFileDownloadLink(item.filename);
-        const fileUrl = new URL(downloadUrl)
-        const auth = "Basic " + btoa(`${fileUrl.username}:${fileUrl.password}`)
-        fileUrl.username = ''
-        fileUrl.password = ''
-        const search = new URLSearchParams(fileUrl.search)
-        search.append('__auth', auth)
-        fileUrl.search = `${search}`
-        const itemUrl = `${fileUrl}`
+        const itemUrl = getClient().getItemUrl(item.filename)
 
         setCurrentFile({
             name: item.basename,
@@ -73,10 +62,6 @@ function App() {
             next: item.next,
             prev: item.prev
         })
-    }
-
-    function getRootPath() {
-        return `/files/` + currentProfile.loginName
     }
 
     function toBreadcrumb(pathStr) {
@@ -110,31 +95,12 @@ function App() {
 
     function browse(path) {
         setLoading(true)
-        if (path === undefined) {
-            path = getRootPath()
-        }
         const client = getClient()
+        if (path === undefined) {
+            path = client.getRootPath()
+        }
         setCurrentFile(null)
-        client.getDirectoryContents(path, {
-            details: true
-        }).then((response) => {
-            const headers = client.getHeaders();
-            let items = []
-            for (const item of response.data) {
-                const filename = item.filename.replace(`/files/${currentProfile.loginName}`, '')
-                items.push({
-                    ...item,
-                    thumbnail: `${currentProfile.server}/apps/files/api/v1/thumbnail/500/500${filename}?__auth=${headers['Authorization']}`
-                })
-            }
-            let idx = 0;
-            // TODO check if next/prev item is a file (not directory)
-            for (const item of items) {
-                item.prev = idx >= 1 ? items[idx - 1] : null;
-                item.next = idx + 1 >= items.length ? null : items[idx + 1];
-                idx++;
-            }
-
+        client.browse(path).then((items) => {
             setContent({
                 path: path,
                 breadcrumb: toBreadcrumb(path),

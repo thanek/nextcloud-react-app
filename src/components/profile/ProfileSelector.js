@@ -12,6 +12,8 @@ import {FontAwesomeIcon} from '@fortawesome/react-fontawesome'
 import {faAdd, faLink} from "@fortawesome/free-solid-svg-icons";
 import ProfileEditor from "./ProfileEditor";
 import Profile from "./Profile";
+import NextcloudClient from "../../utils/NextcloudClient";
+import Avatars from "./Avatars";
 
 export default function ProfileSelector(props) {
     const [ncServerProtocol, setNcServerProtocol] = useState(() => localStorage.getItem("ncServerProtocol") || 'https');
@@ -33,44 +35,34 @@ export default function ProfileSelector(props) {
         saveProfiles(profiles)
     }, [profiles]);
 
+    async function createProfile() {
+        setGettingNcServer(false)
+        localStorage.setItem("ncServerProtocol", ncServerProtocol)
+        localStorage.setItem("ncServerHost", ncServerAddress)
+        await NextcloudClient.withServer(ncServerProtocol + '://' + ncServerAddress).startLoginFlow(
+            {
+                onStartPolling: (data) => {
+                    setProfileConfirmationLink(data.login)
+                },
+                onSuccess: (data) => {
+                    console.log("ON SUCCESS", data)
+                    setProfileConfirmationLink(null)
+                    setProfiles([...profiles, {...data, avatar: Avatars.random()}])
+                }
+            }
+        )
+    }
+
     // TODO allow to cancel polling when other profile is selected
     function pollForProfileConfirmation(endpoint, token) {
-        const requestOptions = {
-            method: 'POST',
-            body: "token=" + token,
-            headers: {'content-type': 'application/x-www-form-urlencoded'}
-        };
-
-        fetch(endpoint, requestOptions).then(response => {
-            if (response.status !== 404) {
-                console.log("Got profile confirmation!")
-                return response.json()
-            } else {
-                console.log("Waiting...")
-                setTimeout(function () {
-                    pollForProfileConfirmation(endpoint, token)
-                }, 10000)
-                return null
-            }
-        }).then(data => {
-            if (data) {
+        new NextcloudClient().pollForConfirmation({
+            token: token,
+            endpoint: endpoint,
+            onSuccess: (data) => {
                 setProfileConfirmationLink(null)
                 setProfiles([...profiles, data])
             }
         })
-    }
-
-    function createProfile() {
-        setGettingNcServer(false)
-        const requestOptions = {method: 'POST', headers: {'USER_AGENT': 'Nextcloud-Tizen'}};
-        localStorage.setItem("ncServerProtocol", ncServerProtocol)
-        localStorage.setItem("ncServerHost", ncServerAddress)
-        fetch(ncServerProtocol + '://' + ncServerAddress + '/index.php/login/v2', requestOptions)
-            .then(response => response.json())
-            .then(data => {
-                setProfileConfirmationLink(data.login)
-                pollForProfileConfirmation(data.poll.endpoint, data.poll.token)
-            })
     }
 
     function copyOf(profile) {

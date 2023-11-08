@@ -28,6 +28,10 @@ class Avatars {
     static count() {
         return Avatars.avatars.length
     }
+
+    static random() {
+        return Math.floor(Math.random() * Avatars.avatars.length)
+    }
 }
 
 export default Avatars;
