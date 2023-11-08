@@ -33,7 +33,6 @@ class NextcloudClient {
         fetch(this.server + '/index.php/login/v2', {method: 'POST', headers: {'USER_AGENT': 'Nextcloud-Tizen'}})
             .then(response => response.json())
             .then((data) => {
-                console.log("MAM TOKEN", data)
                 flowParameters.onStartPolling(data)
                 this.pollForConfirmation({
                     token: data.poll.token,

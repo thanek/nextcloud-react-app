@@ -15,54 +15,63 @@ Step by step, you will need to:
 To make the Login flow working (allow app users to create their profiles in the app by authenticating via Nextcloud
 page), you need to do the following things:
 
-* introduce new method `preflightedCors` in the class `\OCP\AppFramework\Controller` which should look like this:
-  ```php
-    /**
-     * @NoAdminRequired
-     * @NoCSRFRequired
-     * @PublicPage
-     */
-    public function preflightedCors()
-    {
-        if (isset($this->request->server['HTTP_ORIGIN'])) {
-            $origin = $this->request->server['HTTP_ORIGIN'];
-        } else {
-            $origin = '*';
-        }
+* introduce new method `preflightedCors` in the class `\OCP\AppFramework\Controller` (located in 
+  `lib/public/AppFramework/Controller.php`) which should look like this:
 
-        $response = new Response();
-        $response->addHeader('Access-Control-Allow-Origin', $origin);
-        $response->addHeader('Access-Control-Allow-Methods', '*');
-        $response->addHeader('Access-Control-Allow-Headers', '*');
-        $response->addHeader('Access-Control-Max-Age', '86400');
-        $response->addHeader('Access-Control-Allow-Credentials', 'false');
-        return $response;
+```php
+/**
+ * @NoAdminRequired
+ * @NoCSRFRequired
+ * @PublicPage
+ */
+public function preflightedCors()
+{
+    if (isset($this->request->server['HTTP_ORIGIN'])) {
+        $origin = $this->request->server['HTTP_ORIGIN'];
+    } else {
+        $origin = '*';
     }
+
+    $response = new Response();
+    $response->addHeader('Access-Control-Allow-Origin', $origin);
+    $response->addHeader('Access-Control-Allow-Methods', '*');
+    $response->addHeader('Access-Control-Allow-Headers', '*');
+    $response->addHeader('Access-Control-Max-Age', '86400');
+    $response->addHeader('Access-Control-Allow-Credentials', 'false');
+    return $response;
+}
+```
 
 * register new route for `OPTIONS` method in the file `core/routes.php`:
 
-  ```php
-  [
-    'name' => 'ClientFlowLoginV2#preflighted_cors', 
-    'url' => '/login/v2{path}',
-    'verb' => 'OPTIONS', 
-    'requirements' => ['path' => '.*']
-  ],
+```php
+[
+  'name' => 'ClientFlowLoginV2#preflightedCors', 
+  'url' => '/login/v2{path}',
+  'verb' => 'OPTIONS', 
+  'requirements' => ['path' => '.*']
+],
+```
 
-* Add `@CORS` annotation to the
+* locate the class file `core/Controller/ClientFlowLoginV2Controller.php`, and:
+* add `@CORS` annotation to the
   method `\OC\Core\Controller\ClientFlowLoginV2Controller::public function poll(string $token): JSONResponse`
-* Add `@CORS` annotation to the
+* add `@CORS` annotation to the
   method `\OC\Core\Controller\ClientFlowLoginV2Controller::public function init(): JSONResponse`
 
 ### Allow CORS requests in the webdav files API
 
-Open the `remote.php` file and find a line that looks like this
+Open the `remote.php` file and find a block that looks like this
 
 ```php
-$request = \OC::$server->getRequest();
+if (\OCP\Util::needUpgrade()) {
+    // since the behavior of apps or remotes are unpredictable during
+    // an upgrade, return a 503 directly
+    throw new RemoteException('Service unavailable', 503);
+}
 ```
 
-Before that line, you need to add following the code:
+Under this block, you need to add the following code:
 
 ```php
 // Allow from any origin
@@ -89,8 +98,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
 
 ### Allow CORS requests for thumbnail requests
 
-* In the class `\OCA\Files\Controller\ApiController`, find the method `public function getThumbnail($x, $y, $file)` and
-  add the `@CORS` annotation to it.
+* In the class `\OCA\Files\Controller\ApiController` (`apps/files/lib/Controller/ApiController.php`), find the method 
+  `public function getThumbnail($x, $y, $file)` and add the `@CORS` annotation to it.
 * Register new route in `apps/files/appinfo/routes.php` by adding the following to the `routes` array declaration:
 
 ```php
@@ -102,7 +111,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
 ],
 ```
 
-
+And that's it. From now on, you should be able to register new profile in the app and browse the Nextcluod content from it!
 
 ## Available Scripts
 

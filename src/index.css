@@ -31,7 +31,7 @@ div.app {
 }
 
 div.content {
-    background: #313131;
+    background: #212529;
     color: lightblue;
     margin-bottom: 5em;
     max-height: 100%;
@@ -45,22 +45,20 @@ code {
 }
 
 .profile-selector {
-    /*border: 1px solid blue;*/
-    /*height: 200px;*/
-    /*max-height: 200px;*/
+    height: 100%;
 }
 
 .profile {
     width: 10em;
     height: 14em;
     margin: 1em;
-    border: 1px solid #414141;
+    border: 1px solid #464e54;
     border-radius: 1em;
     overflow: hidden;
 }
 
 .profile:hover {
-    background: #414141;
+    background: #464e54;
 }
 
 .profile figcaption {
@@ -91,20 +89,20 @@ code {
     border-width: 2px;
 }
 
-.profile .edit-profile {
+.profile .btn {
     border: none;
     background: transparent;
-    color: #414141;
+    color: #464e54;
     z-index: 99;
 }
 
 nav.path {
     width: 100%;
-    background: #414141;
+    background: #464e54;
 }
 
 .breadcrumb-item {
-    background: #616161;
+    /*background: #616161;*/
 }
 
 .breadcrumb-item a {
@@ -126,7 +124,7 @@ nav.path {
 }
 
 .file-item:hover, .file-item.selected {
-    background: #414141;
+    background: #464e54;
 }
 
 .file-item figure {
@@ -186,21 +184,6 @@ nav.path {
 
 #audio-container audio {
     width: 100%;
-}
-
-#pButton {
-    margin-top: 12px;
-    cursor: pointer;
-}
-
-#playhead {
-    width: 8px;
-    height: 8px;
-    -webkit-border-radius: 50%;
-    border-radius: 50%;
-    margin-top: -3px;
-    background: black;
-    cursor: pointer;
 }
 
 .current-file {

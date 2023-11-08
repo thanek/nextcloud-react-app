@@ -2,10 +2,10 @@ import {useEffect, useRef, useState} from "react";
 import {
     Button,
     Container,
-    Figure, FormSelect, InputGroup,
+    Figure, FigureCaption, FormSelect, InputGroup,
     Modal,
     ModalBody,
-    ModalFooter,
+    ModalFooter, ModalHeader,
     ModalTitle
 } from "react-bootstrap";
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome'
@@ -14,6 +14,7 @@ import ProfileEditor from "./ProfileEditor";
 import Profile from "./Profile";
 import NextcloudClient from "../../utils/NextcloudClient";
 import Avatars from "./Avatars";
+import QRCode from "react-qr-code";
 
 export default function ProfileSelector(props) {
     const [ncServerProtocol, setNcServerProtocol] = useState(() => localStorage.getItem("ncServerProtocol") || 'https');
@@ -24,6 +25,7 @@ export default function ProfileSelector(props) {
         return initialValue || [];
     })
     const [profileEdit, setProfileEdit] = useState(null)
+    const [profileDeletion, setProfileDeletion] = useState(null)
     const [profileConfirmationLink, setProfileConfirmationLink] = useState(null)
     const [gettingNcServer, setGettingNcServer] = useState(false)
 
@@ -45,7 +47,6 @@ export default function ProfileSelector(props) {
                     setProfileConfirmationLink(data.login)
                 },
                 onSuccess: (data) => {
-                    console.log("ON SUCCESS", data)
                     setProfileConfirmationLink(null)
                     setProfiles([...profiles, {...data, avatar: Avatars.random()}])
                 }
@@ -53,16 +54,10 @@ export default function ProfileSelector(props) {
         )
     }
 
-    // TODO allow to cancel polling when other profile is selected
-    function pollForProfileConfirmation(endpoint, token) {
-        new NextcloudClient().pollForConfirmation({
-            token: token,
-            endpoint: endpoint,
-            onSuccess: (data) => {
-                setProfileConfirmationLink(null)
-                setProfiles([...profiles, data])
-            }
-        })
+    // TODO cancel polling!
+    function cancelProfileCreation() {
+        setGettingNcServer(false)
+        setProfileConfirmationLink(null)
     }
 
     function copyOf(profile) {
@@ -86,66 +81,105 @@ export default function ProfileSelector(props) {
         setProfileEdit(null)
     }
 
+    function deleteProfile(profile) {
+        const newProfiles = profiles.filter(function (p) {
+            return !(p.loginName === profile.loginName && p.server === profile.server)
+        });
+        setProfiles(newProfiles)
+        saveProfiles(newProfiles)
+        setProfileDeletion(null)
+    }
+
     return (<>
         {!profileEdit &&
-        <Container flex className="profile-selector">
-            <h5 className="p-3">Choose your profile:</h5>
-            {profiles.map((profile) => <Profile profile={profile}
-                                                onEdit={() => setProfileEdit(copyOf(profile))}
-                                                onSelect={() => props.onProfileSelect(profile)}/>
-            )}
+        <Modal show fullscreen className="profile-editor">
+            <ModalBody className="position-absolute translate-middle top-50 start-50">
+                <h5 className="p-3">Choose your profile:</h5>
+                {profiles.map((profile) =>
+                    <Profile profile={profile}
+                             onEdit={() => setProfileEdit(copyOf(profile))}
+                             onDelete={() => setProfileDeletion(profile)}
+                             onSelect={() => props.onProfileSelect(profile)}/>
+                )}
 
-            {!profileConfirmationLink &&
-            <Figure className="profile" onClick={() => setGettingNcServer(true)}>
-                <div className="icon-wrapper d-flex align-items-center justify-content-center">
-                    <FontAwesomeIcon icon={faAdd} className="icon" size="6x"/>
-                </div>
-                <Figure.Caption>
-                    <p>Add profile</p>
-                </Figure.Caption>
-            </Figure>}
+                {!profileConfirmationLink &&
+                <Figure className="profile" onClick={() => setGettingNcServer(true)}>
+                    <div className="icon-wrapper d-flex align-items-center justify-content-center">
+                        <FontAwesomeIcon icon={faAdd} className="icon" size="6x"/>
+                    </div>
+                    <Figure.Caption>
+                        <p>Add profile</p>
+                    </Figure.Caption>
+                </Figure>}
 
-            {gettingNcServer &&
-            <Modal className="modal" centered show>
-                <ModalTitle className="p-3">Nextcloud server</ModalTitle>
-                <ModalBody>
-                    <form>
-                        <div className="mb-3">
-                            <label htmlFor="server-address" className="col-form-label">Nextcloud server address:</label>
-                            <InputGroup className="mb-3">
-                                <FormSelect className="w-25"
-                                            value={ncServerProtocol}
-                                            onChange={e => setNcServerProtocol(e.target.value)}>
-                                    <option value="https">https://</option>
-                                    <option value="http">http://</option>
-                                </FormSelect>
-                                <input className="w-75 form-control" placeholder="nextcloud.com"
-                                       value={ncServerAddress}
-                                       onInput={e => setNcServerAddress(e.target.value)}/>
-                            </InputGroup>
-                            <div className="form-text">
-                                Enter your nextcloud server address url
+                {gettingNcServer &&
+                <Modal centered show>
+                    <ModalTitle className="p-3">Nextcloud server</ModalTitle>
+                    <ModalBody>
+                        <form>
+                            <div className="mb-3">
+                                <label htmlFor="server-address" className="col-form-label">Nextcloud server
+                                    address:</label>
+                                <InputGroup className="mb-3">
+                                    <FormSelect className="w-25"
+                                                value={ncServerProtocol}
+                                                onChange={e => setNcServerProtocol(e.target.value)}>
+                                        <option value="https">https://</option>
+                                        <option value="http">http://</option>
+                                    </FormSelect>
+                                    <input className="w-75 form-control" placeholder="nextcloud.com"
+                                           value={ncServerAddress}
+                                           onInput={e => setNcServerAddress(e.target.value)}/>
+                                </InputGroup>
+                                <div className="form-text">
+                                    Enter your nextcloud server address url
+                                </div>
                             </div>
-                        </div>
-                    </form>
-                </ModalBody>
-                <ModalFooter>
-                    <Button className="btn-secondary" onClick={() => setGettingNcServer(false)}>Cancel</Button>
-                    <Button className="btn-primary" onClick={() => createProfile()}>OK</Button>
-                </ModalFooter>
-            </Modal>}
+                        </form>
+                    </ModalBody>
+                    <ModalFooter>
+                        <Button className="btn-secondary" onClick={() => setGettingNcServer(false)}>Cancel</Button>
+                        <Button className="btn-primary" onClick={() => createProfile()}>OK</Button>
+                    </ModalFooter>
+                </Modal>}
 
-            {profileConfirmationLink &&
-            <Figure className="profile add-profile">
-                <FontAwesomeIcon icon={faLink} className="icon"/>
-                <Figure.Caption>
-                    <a target="_blank" href={profileConfirmationLink}>Confirm profile</a>
-                </Figure.Caption>
-            </Figure>}
-        </Container>}
+                {profileConfirmationLink &&
+                <Modal centered show>
+                    <ModalHeader>
+                        <ModalTitle className="p-3">Confirm your profile</ModalTitle>
+                        <Button className="btn-close" onClick={() => cancelProfileCreation()}/>
+                    </ModalHeader>
+                    <ModalBody>
+                        <Figure className="add-profile">
+                            <FigureCaption>
+                                Confirm your profile by entering the Nextcloud site under the QR code
+                            </FigureCaption>
+                            <Container className="m-5">
+                                <QRCode value={profileConfirmationLink}/>
+                            </Container>
+                            <FigureCaption>
+                                or click on <a target="_blank" href={profileConfirmationLink}>the link</a>
+                            </FigureCaption>
+                        </Figure>
+                    </ModalBody>
+                </Modal>}
+            </ModalBody>
+        </Modal>}
 
-        {profileEdit && <ProfileEditor profile={profileEdit}
-                                       onSave={(profile) => saveProfile(profile)}
-                                       onCancel={() => setProfileEdit(null)}/>}
+        {profileDeletion &&
+        <Modal centered show>
+            <ModalBody>
+                Are you sure you want to delete this profile?
+            </ModalBody>
+            <ModalFooter>
+                <Button className="btn-secondary" onClick={() => setProfileDeletion(null)}>Cancel</Button>
+                <Button className="btn-primary" onClick={() => deleteProfile(profileDeletion)}>OK</Button>
+            </ModalFooter>
+        </Modal>}
+
+        {profileEdit &&
+        <ProfileEditor profile={profileEdit}
+                       onSave={(profile) => saveProfile(profile)}
+                       onCancel={() => setProfileEdit(null)}/>}
     </>);
 }

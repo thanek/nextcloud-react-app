@@ -118,26 +118,28 @@ function App() {
         return isCurrent(item) || (selectedFile && selectedFile.filename === item.filename);
     }
 
-    return (<>
-        <div className="app">
-            <Container fluid="true" flex>
-                <Navbar bg='dark' variant='dark'>
-                    <Container>
-                        <Navbar.Brand href="#" onClick={() => browse()}/>
-                        <Nav className="me-auto justify-content-center">
-                            {currentProfile && <>
-                                <NavbarText>Welcome {currentProfile.loginName}!</NavbarText>
-                                <NavLink onClick={() => selectProfile(null)}>[switch profile]</NavLink></>}
-                        </Nav>
-                    </Container>
-                </Navbar>
-            </Container>
-            <Container className="content rounded-bottom-4" flex>
-                {!currentProfile &&
-                <ProfileSelector currentProfile={currentProfile}
-                                 onProfileSelect={(profile) => selectProfile(profile)}/>}
+    return (<div data-bs-theme="dark">
+        {!currentProfile &&
+        <div className="profile-selector">
+            <ProfileSelector currentProfile={currentProfile}
+                             onProfileSelect={(profile) => selectProfile(profile)}/>
+        </div>}
 
-                {currentProfile && <>
+        {currentProfile && <>
+            <div className="app">
+                <Container fluid="true" flex>
+                    <Navbar bg='dark' variant='dark'>
+                        <Container>
+                            <Navbar.Brand href="#" onClick={() => browse()}/>
+                            <Nav className="me-auto justify-content-center">
+                                {currentProfile && <>
+                                    <NavbarText>Welcome {currentProfile.loginName}!</NavbarText>
+                                    <NavLink onClick={() => selectProfile(null)}>[switch profile]</NavLink></>}
+                            </Nav>
+                        </Container>
+                    </Navbar>
+                </Container>
+                <Container className="content rounded-bottom-4" flex>
                     {content && <div id="listing">
                         <Breadcrumb className="rounded-3 path">
                             {content.breadcrumb.map(item =>
@@ -169,9 +171,9 @@ function App() {
                             </>)}
                         </Container>
                     </div>}
-                </>}
-            </Container>
-        </div>
+                </Container>
+            </div>
+        </>}
 
         {currentFile && <FileViewer
             file={currentFile}
@@ -189,7 +191,7 @@ function App() {
         {loading && <div className="spinner-wrapper rounded-bottom-4 position-fixed" onClick={() => setLoading(false)}>
             <Spinner className="spn" variant='light'/>
         </div>}
-    </>);
+    </div>);
 }
 
 export default App;
