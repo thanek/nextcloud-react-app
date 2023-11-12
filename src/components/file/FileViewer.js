@@ -2,10 +2,14 @@ import {Button, Container, Row} from "react-bootstrap";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {faArrowLeft, faArrowRight, faClose} from "@fortawesome/free-solid-svg-icons";
 import Audio from "../media/Audio";
-import {useRef} from "react";
+import {useEffect, useRef} from "react";
 
 export default function FileViewer(props) {
     const thisRef = useRef()
+
+    useEffect(() => {
+        thisRef.current.focus()
+    }, [])
 
     function supportedMedia(file) {
         return file.mime && (file.mime.startsWith('audio/')
@@ -13,10 +17,22 @@ export default function FileViewer(props) {
             || file.mime.startsWith('video/'))
     }
 
+    function handleKeyboard(event) {
+        if (event.key === 'Escape') {
+            props.onClose()
+        }
+        if (event.key === 'ArrowRight' && props.next) {
+            props.onNext()
+        }
+        if (event.key === 'ArrowLeft' && props.prev) {
+            props.onPrev()
+        }
+    }
+
     return <div className="current-file position-fixed">
         <Container>
             <Row className="viewer d-flex align-items-center justify-content-center">
-                <div id="show" className="">
+                <a href="#" ref={thisRef} onKeyDown={handleKeyboard} ref={thisRef}>
                     <Button className="close-btn position-absolute top-0 end-0" onClick={() => props.onClose()}>
                         <FontAwesomeIcon icon={faClose} size="4x"/>
                     </Button>
@@ -25,7 +41,7 @@ export default function FileViewer(props) {
                         <FontAwesomeIcon icon={faArrowLeft} size="4x"/>
                     </Button>}
 
-                    <div ref={thisRef}>
+                    <div>
                         {!supportedMedia(props.file) &&
                         <div>
                             {props.onLoad()}
@@ -48,7 +64,7 @@ export default function FileViewer(props) {
                     {props.next && <Button className="navi next" onClick={() => props.onNext()}>
                         <FontAwesomeIcon icon={faArrowRight} size="4x"/>
                     </Button>}
-                </div>
+                </a>
             </Row>
         </Container>
     </div>
