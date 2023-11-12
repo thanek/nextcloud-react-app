@@ -104,10 +104,12 @@ export default function ProfileSelector(props) {
                 )}
 
                 {!profileConfirmationLink &&
-                <Figure className="profile" onClick={() => setGettingNcServer(true)}>
-                    <div className="icon-wrapper d-flex align-items-center justify-content-center">
+                <Figure className="profile">
+                    <a href="#"
+                       className="icon-wrapper d-flex align-items-center justify-content-center"
+                       onClick={() => setGettingNcServer(true)}>
                         <FontAwesomeIcon icon={faAdd} className="icon" size="6x"/>
-                    </div>
+                    </a>
                     <Figure.Caption>
                         <p>Add profile</p>
                     </Figure.Caption>

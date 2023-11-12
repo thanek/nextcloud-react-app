@@ -50,15 +50,21 @@ code {
 
 .profile {
     width: 10em;
-    height: 14em;
+    height: 16em;
     margin: 1em;
     border: 1px solid #464e54;
     border-radius: 1em;
     overflow: hidden;
 }
 
-.profile:hover {
+.profile a {
+    text-decoration: none;
+    color: #efefef;
+}
+
+.profile:hover, .profile > a:focus, .profile:focus-within {
     background: #464e54;
+    outline: 0 none;
 }
 
 .profile figcaption {
@@ -91,10 +97,18 @@ code {
     border-width: 2px;
 }
 
+.profile .buttons {
+    visibility: hidden;
+}
+
+.profile:hover .buttons, .profile:focus-within .buttons {
+    visibility: visible;
+}
+
 .profile .btn {
     border: none;
     background: transparent;
-    color: #464e54;
+    color: #efefef;
     z-index: 99;
 }
 
